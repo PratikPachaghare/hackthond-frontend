@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 
 const Sidebar = ({ activeTab, setActiveTab }) => {
   const menuItems = [
-    { id: 'dash', name: 'Dashboard & Maps', icon: <LayoutDashboard size={20}/> },
+    { id: 'dash', name: 'Dashboard', icon: <LayoutDashboard size={20}/> },
     { id: 'status', name: 'Dustbin Status', icon: <Map size={20}/> },
     { id: 'predict', name: 'Fill Prediction', icon: <BarChart3 size={20}/> },
   ];

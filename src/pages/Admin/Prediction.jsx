@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { mockData } from '../../../data';
+import { mockData } from '../../data';
 import { Search, Map, PhoneCall } from 'lucide-react';
 
 const Prediction = () => {
