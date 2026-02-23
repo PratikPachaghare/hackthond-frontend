@@ -13,11 +13,14 @@ export const ENDPOINTS = {
     GET_CITY_BINS: `${API_BASE_URL}/admin/stats`, // Amravati city ke saare bins
     GET_ALL_WORKERS: `${API_BASE_URL}/admin/workers`, // Dashboard list ke liye
     DASHBOARD_STATS: `${API_BASE_URL}/admin/stats`,
+    HOSTPOT_STATS: `${API_BASE_URL}/admin/hotspots`,
   },
 
   // 3. Worker Specific Endpoints (ML Model Integrated)
   WORKER: {
     GET_OPTIMIZED_TASKS: `${API_BASE_URL}/worker/PredictedList`, // Flask model se filtered data lene ke liye
+    GET_ALL_WORKERS: `${API_BASE_URL}/worker/getAllWorkers`, // Flask model se filtered data lene ke liye
+    GET_BIN_ANALYTICS: (binId) => `${API_BASE_URL}/worker/getBinAnalytics/${binId}`, // Flask model se filtered data lene ke liye
     COMPLETE_TASK: `${API_BASE_URL}/worker/complete-task`,
     GET_CITY_BINS: `${API_BASE_URL}/worker/dashboard-stats`,
     GET_WORKER_TOKEN: `${API_BASE_URL}/worker/getWorkerFromToken`,

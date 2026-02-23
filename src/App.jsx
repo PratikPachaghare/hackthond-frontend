@@ -2,10 +2,12 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { useState, useEffect } from 'react';
 import Dashboard from './pages/Admin/Dashboard';
 import DustbinStatus from './pages/Admin/DustbinStatus';
-import Prediction from './pages/Admin/Prediction';
+import Prediction from './pages/Admin/WorkforceManager';
 import WorkerView from './pages/worker/worker';
 import Sidebar from './Layout/Sidebar';
 import Auth from './pages/Auth/Auth';
+import HotspotAnalysis from './pages/Admin/HotspotAnalysis';
+import WorkforceManager from './pages/Admin/WorkforceManager';
 
 function App() {
   const [activeTab, setActiveTab] = useState('dash');
@@ -51,7 +53,8 @@ useEffect(() => {
                 <main className="flex-1 ml-64 p-8">
                   {activeTab === 'dash' && <Dashboard />}
                   {activeTab === 'status' && <DustbinStatus />}
-                  {activeTab === 'predict' && <Prediction />}
+                  {activeTab === 'Staff' && <WorkforceManager />}
+                  {activeTab === 'hotspot' && <HotspotAnalysis />}
                 </main>
               </div>
             </ProtectedRoute>

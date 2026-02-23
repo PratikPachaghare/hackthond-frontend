@@ -48,6 +48,7 @@ export default function WorkerApp() {
         <NavButton icon={MapIcon} label="Track" tab="track" activeTab={activeTab} onClick={setActiveTab} />
         <NavButton icon={User} label="Profile" tab="profile" activeTab={activeTab} onClick={setActiveTab} />
       </div>
+      
     </div>
   );
 }

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { apiCall } from '../../utils/apiClient';
 import { ENDPOINTS } from '../../utils/endpoints';
-import { MapPin, AlertCircle, CheckCircle2, WifiOff, X, Loader2, Activity, ShieldCheck, Users, BarChart3 } from 'lucide-react';
+import { MapPin, AlertCircle, CheckCircle2, WifiOff, X, Loader2, Activity, ShieldCheck, Users, BarChart3, LayoutGrid } from 'lucide-react';
 
 const Dashboard = () => {
   const [selectedBin, setSelectedBin] = useState(null);
@@ -123,75 +123,78 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* MIDDLE SECTION: MAP & ANALYTICS SPLIT */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        
-        {/* Left: Map View */}
-        <div className="lg:col-span-2 bg-white rounded-3xl h-[600px] relative border border-slate-100 shadow-sm overflow-hidden flex flex-col">
-          <div className="px-6 py-4 border-b border-slate-50 flex justify-between items-center bg-white/80 backdrop-blur-md absolute top-0 w-full z-20">
-            <h3 className="font-bold text-slate-800 flex items-center gap-2"><MapPin size={18}/> Live Deployment Map</h3>
-          </div>
-          
-          <div className="flex-1 relative mt-[60px]">
-            <div className="absolute inset-0 bg-slate-100 bg-[url('https://carto.com/help/images/posts/all/carto-mobile-sdk/basic-concepts/map-tiles.png')] opacity-30"></div>
-            
-            {dustbins.map(bin => (
-              <button 
-                key={bin._id}
-                onClick={() => setSelectedBin(bin)}
-                className="absolute z-10 group transition-all hover:scale-125"
-                style={{ 
-                    top: `${((bin.location?.lat - 20) * 100) % 90}%`, 
-                    left: `${((bin.location?.lng - 77) * 100) % 90}%` 
-                }}
-              >
-                <div className="relative">
-                  <MapPin 
-                    className={`${bin.currentLevel > 80 ? 'text-red-500 animate-bounce drop-shadow-lg' : 'text-emerald-500 drop-shadow-md'}`} 
-                    size={40} 
-                    fill="currentColor" 
-                    fillOpacity={0.2}
-                  />
-                  <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-1 bg-black/20 rounded-full blur-[2px]"></div>
-                </div>
-                <span className="absolute -top-12 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-xs font-bold px-3 py-2 rounded-xl opacity-0 group-hover:opacity-100 whitespace-nowrap shadow-xl transition-all scale-95 group-hover:scale-100 pointer-events-none">
-                  {bin.name} • <span className={bin.currentLevel > 80 ? 'text-red-400' : 'text-emerald-400'}>{bin.currentLevel}%</span>
-                </span>
-              </button>
-            ))}
-          </div>
+      {/* AREA BREAKDOWN SECTION (FLEX WRAP GRID STYLE) */}
+      <div className="space-y-4">
+        <div className="flex items-center gap-2 px-1">
+          <LayoutGrid size={18} className="text-slate-400" />
+          <h3 className="font-bold text-slate-500 uppercase tracking-widest text-[10px]">Area-wise Deployment</h3>
         </div>
-
-        {/* Right: Area Breakdown List (UPDATED SECTION) */}
-        <div className="lg:col-span-1 bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden flex flex-col h-[600px]">
-          <div className="px-6 py-5 border-b border-slate-50">
-            <h3 className="font-bold text-slate-800 flex items-center gap-2"><BarChart3 size={18}/> Area Insights</h3>
-            <p className="text-xs font-medium text-slate-400 mt-1">Installed bins per location</p>
-          </div>
-          
-          <div className="flex-1 overflow-y-auto p-4 space-y-3">
-            {stats.areaBreakdown.length > 0 ? (
-              stats.areaBreakdown.map((area, idx) => (
-                <div key={idx} className="flex justify-between items-center p-4 bg-slate-50 hover:bg-slate-100 rounded-2xl border border-slate-100 transition-colors">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2.5 bg-white shadow-sm rounded-xl text-blue-500">
-                      <MapPin size={18} />
-                    </div>
-                    <h4 className="font-bold text-slate-700 text-sm">{area._id}</h4>
+        
+        {/* Container with flex-wrap instead of overflow-x-auto */}
+        <div className="flex flex-wrap gap-4">
+          {stats.areaBreakdown.length > 0 ? (
+            stats.areaBreakdown.map((area, idx) => (
+              <div 
+                key={idx} 
+                className="flex-1 min-w-[200px] max-w-[280px] bg-white p-5 rounded-[1.8rem] shadow-sm border border-slate-100 hover:shadow-md hover:border-blue-100 transition-all group"
+              >
+                <div className="flex justify-between items-start mb-3">
+                  <div className="p-2 bg-slate-50 rounded-xl text-slate-400 group-hover:text-blue-500 group-hover:bg-blue-50 transition-all">
+                    <MapPin size={16}/>
                   </div>
-                  <div className="flex flex-col items-end">
-                    <span className="text-xl font-black text-slate-800 leading-none">{area.count}</span>
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1">Bins</span>
-                  </div>
+                  <span className="text-[9px] font-black text-slate-300 group-hover:text-blue-400 tracking-tighter uppercase">Verified</span>
                 </div>
-              ))
-            ) : (
-              <div className="h-full flex flex-col items-center justify-center text-slate-400 p-6 text-center">
-                <BarChart3 size={32} className="mb-3 opacity-20"/>
-                <p className="text-sm font-medium">No area data available right now.</p>
+                
+                <h4 className="font-bold text-slate-700 text-sm truncate mb-1">{area._id}</h4>
+                
+                <div className="flex items-end gap-1.5">
+                  <span className="text-2xl font-black text-slate-900 leading-none">{area.count}</span>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase pb-0.5 tracking-wider">Units</span>
+                </div>
               </div>
-            )}
-          </div>
+            ))
+          ) : (
+            <div className="w-full py-10 flex flex-col items-center justify-center bg-white rounded-3xl border border-dashed border-slate-200 text-slate-400">
+               <BarChart3 size={24} className="mb-2 opacity-30" />
+               <p className="text-xs font-medium uppercase tracking-widest">No area data found</p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* MAP SECTION */}
+      <div className="bg-white rounded-3xl h-[600px] relative border border-slate-100 shadow-sm overflow-hidden flex flex-col">
+        <div className="px-6 py-4 border-b border-slate-50 flex justify-between items-center bg-white/80 backdrop-blur-md absolute top-0 w-full z-20">
+          <h3 className="font-bold text-slate-800 flex items-center gap-2"><MapPin size={18}/> Live Deployment Map</h3>
+        </div>
+        
+        <div className="flex-1 relative mt-[60px]">
+          <div className="absolute inset-0 bg-slate-100 bg-[url('https://carto.com/help/images/posts/all/carto-mobile-sdk/basic-concepts/map-tiles.png')] opacity-30"></div>
+          
+          {dustbins.map(bin => (
+            <button 
+              key={bin._id}
+              onClick={() => setSelectedBin(bin)}
+              className="absolute z-10 group transition-all hover:scale-125"
+              style={{ 
+                  top: `${((bin.location?.lat - 20) * 100) % 90}%`, 
+                  left: `${((bin.location?.lng - 77) * 100) % 90}%` 
+              }}
+            >
+              <div className="relative">
+                <MapPin 
+                  className={`${bin.currentLevel > 80 ? 'text-red-500 animate-bounce drop-shadow-lg' : 'text-emerald-500 drop-shadow-md'}`} 
+                  size={40} 
+                  fill="currentColor" 
+                  fillOpacity={0.2}
+                />
+                <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-1 bg-black/20 rounded-full blur-[2px]"></div>
+              </div>
+              <span className="absolute -top-12 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-xs font-bold px-3 py-2 rounded-xl opacity-0 group-hover:opacity-100 whitespace-nowrap shadow-xl transition-all scale-95 group-hover:scale-100 pointer-events-none">
+                {bin.name} • <span className={bin.currentLevel > 80 ? 'text-red-400' : 'text-emerald-400'}>{bin.currentLevel}%</span>
+              </span>
+            </button>
+          ))}
         </div>
       </div>
 
