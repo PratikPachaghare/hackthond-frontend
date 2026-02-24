@@ -39,8 +39,6 @@ const DustbinStatus = () => {
         // Ensure endpoint matches your exact configuration
         const response = await apiCall('GET', ENDPOINTS?.DUSTBIN?.MAP_DUSTBINS || ENDPOINTS?.ADMIN?.GET_CITY_BINS); 
         
-        console.log("Map Data Fetched:", response);
-        
         // FIX: Backend seedha Array bhej raha hai, isliye Array.isArray check lagaya hai
         if (Array.isArray(response)) {
             setDustbins(response);
@@ -215,11 +213,7 @@ const DustbinStatus = () => {
 
               </div>
 
-              {/* DISPATCH ACTION */}
-              <button className="mt-auto w-full bg-slate-900 hover:bg-black text-white font-black py-5 rounded-2xl uppercase tracking-[0.2em] text-[11px] transition-all shadow-xl shadow-slate-300 active:scale-95 flex items-center justify-center gap-3">
-                <Navigation size={16}/> Dispatch Collection Unit
-              </button>
-
+           
             </div>
           )}
         </div>

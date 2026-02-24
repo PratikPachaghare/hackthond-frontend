@@ -31,8 +31,8 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
         ))}
       </nav>
 
-      <Link to="/worker" className="mt-auto flex items-center gap-3 p-3 text-gray-400 hover:text-white transition">
-        <LogOut size={18}/> Switch to Worker View
+      <Link to="/auth" className="mt-auto flex items-center gap-3 p-3 text-gray-400 hover:text-white transition">
+        <LogOut size={22} onClick={()=>localStorage.removeItem("token")} className="cursor-pointer"/> Logout
       </Link>
     </aside>
   );

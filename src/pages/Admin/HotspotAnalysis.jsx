@@ -117,7 +117,7 @@ export default function HotspotAnalysis() {
         </MapContainer>
 
         {/* Action Overlay */}
-        {selectedHotspot && (
+        {/* {selectedHotspot && (
           <div className="absolute bottom-10 left-10 right-10 bg-white/90 backdrop-blur-md p-6 rounded-3xl border border-white shadow-2xl z-[1000] animate-in slide-in-from-bottom-10">
             <div className="flex justify-between items-center">
               <div>
@@ -132,7 +132,7 @@ export default function HotspotAnalysis() {
               </button>
             </div>
           </div>
-        )}
+        )} */}
       </div>
     </div>
   );

@@ -32,6 +32,8 @@ export const ENDPOINTS = {
     COLLECTED_BIN: `${API_BASE_URL}/dustbins/update/collectBin`, // Map view ke liye saare bins
     ADD_SINGLE: `${API_BASE_URL}/dustbins/add`,
     ADD_BULK: `${API_BASE_URL}/dustbins/add/bulk`, // Multiple bins ek saath add karne ke liye
+    DUSTBINAREA: `${API_BASE_URL}/dustbins/getDustbinArea`,
+ // Multiple bins ek saath add karne ke liye
     GET_DETAILS: (id) => `${API_BASE_URL}/dustbins/${id}`,
     DELETE: (id) => `${API_BASE_URL}/dustbins/${id}`,
   },
