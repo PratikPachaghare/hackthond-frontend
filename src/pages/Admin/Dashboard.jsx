@@ -60,7 +60,6 @@ const Dashboard = () => {
     // CRITICAL: Must use 'POST' because your backend router uses router.post()
     // Even if the body is empty, the method MUST match.
     const response = await apiCall('POST', url, {});
-      console.log("Fetched bins for area:", areaId, response);
       if (response && response.data) {
         setDustbins(response.data);
       }
