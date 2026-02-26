@@ -8,6 +8,7 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
     { id: 'AddDustbin', name: 'Add Dustbin', icon: <Trash2 size={20}/> },
     // { id: 'Staff', name: 'Staff Status', icon: <Users size={20}/> },
     { id: 'hotspot', name: 'Hotspot Analysis', icon: <BarChart3 size={20}/> },
+    { id: 'heatMap', name: 'Heat Map', icon: <Map size={20}/> },
   ];
 
   return (

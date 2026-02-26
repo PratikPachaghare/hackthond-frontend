@@ -10,6 +10,7 @@ import Auth from './pages/Auth/Auth';
 import HotspotAnalysis from './pages/Admin/HotspotAnalysis';
 import WorkforceManager from './pages/Admin/WorkforceManager';
 import AddDustbinForm from './pages/Admin/AddDustbinForm';
+import HeatMap from './pages/Admin/HeatMap';
 
 function App() {
   const [activeTab, setActiveTab] = useState('dash');
@@ -61,6 +62,7 @@ useEffect(() => {
                   {activeTab === 'AddDustbin' && <AddDustbinForm />}
                   {activeTab === 'Staff' && <WorkforceManager />}
                   {activeTab === 'hotspot' && <HotspotAnalysis />}
+                  {activeTab === 'heatMap' && <HeatMap />}
                 </main>
               </div>
             </ProtectedRoute>
