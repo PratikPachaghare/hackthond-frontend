@@ -29,6 +29,7 @@ const DustbinStatus = () => {
   const [selectedBin, setSelectedBin] = useState(null);
   const [dustbins, setDustbins] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [activeTabIndex, setActiveTabIndex] = useState(0);
   
   const amravatiCenter = [20.9320, 77.7523]; 
 
@@ -38,7 +39,7 @@ const DustbinStatus = () => {
         setLoading(true);
         // Ensure endpoint matches your exact configuration
         const response = await apiCall('GET', ENDPOINTS?.DUSTBIN?.MAP_DUSTBINS || ENDPOINTS?.ADMIN?.GET_CITY_BINS); 
-        
+        console.log("Map Data Response:", response);
         // FIX: Backend seedha Array bhej raha hai, isliye Array.isArray check lagaya hai
         if (Array.isArray(response)) {
             setDustbins(response);
@@ -131,7 +132,10 @@ const DustbinStatus = () => {
                 key={bin._id} 
                 position={[offsetLat, offsetLng]} // Updated to use offset coordinates
                 icon={customIcon} 
-                eventHandlers={{ click: () => setSelectedBin(bin) }} 
+                eventHandlers={{ click: () => {
+                  setSelectedBin(bin);
+                  setActiveTabIndex(0); // Reset tab to first bin
+                } }} 
               />
             );
           })}
@@ -141,36 +145,75 @@ const DustbinStatus = () => {
 
         {/* RIGHT SIDEBAR PANEL */}
         <div className={`absolute top-0 right-0 h-full w-[350px] bg-white/95 backdrop-blur-xl border-l border-slate-100 p-8 transform transition-transform duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] z-[1000] shadow-2xl ${selectedBin ? 'translate-x-0' : 'translate-x-full'} overflow-y-auto`}>
-          {selectedBin && (
+          {selectedBin && (() => {
+            // Get all bins with same name as selected bin
+            const sameBins = dustbins.filter(bin => bin.name.trim() === selectedBin.name.trim());
+            const currentBin = sameBins[activeTabIndex] || selectedBin;
+
+            // Determine color based on bin_type
+            const getColorByType = (binType) => {
+              const typeColorMap = {
+                Organic: { bg: 'bg-green-600', text: 'text-green-600', light: 'bg-green-50', border: 'border-green-200' },
+                Recyclable: { bg: 'bg-blue-700', text: 'text-blue-700', light: 'bg-blue-50', border: 'border-blue-200' },
+                Hazardous: { bg: 'bg-red-600', text: 'text-red-600', light: 'bg-red-50', border: 'border-red-200' },
+              };
+              return typeColorMap[binType] || { bg: 'bg-slate-600', text: 'text-slate-600', light: 'bg-slate-50', border: 'border-slate-200' };
+            };
+
+            const colorScheme = getColorByType(currentBin.bin_type);
+
+            return (
             <div className="flex flex-col h-full text-slate-800">
               
               <div className="flex justify-between items-center mb-6">
-                <span className={`text-[10px] font-black px-3 py-1 rounded tracking-[0.2em] uppercase ${selectedBin.location_type === 'Commercial' ? 'bg-orange-100 text-orange-700' : selectedBin.location_type === 'Industrial' ? 'bg-purple-100 text-purple-700' : 'bg-slate-900 text-white'}`}>
-                  {selectedBin.location_type || 'General'}
+                <span className={`text-[10px] font-black px-3 py-1 rounded tracking-[0.2em] uppercase ${colorScheme.light} ${colorScheme.text} border ${colorScheme.border}`}>
+                  {currentBin.bin_type || 'General'}
                 </span>
                 <button onClick={() => setSelectedBin(null)} className="p-2 hover:bg-red-50 hover:text-red-500 rounded-full text-slate-400 transition-all">
                   <X size={20}/>
                 </button>
               </div>
 
-              <h3 className="text-3xl font-black text-slate-900 leading-tight mb-2 tracking-tight">{selectedBin.name}</h3>
-              <p className="text-blue-600 text-[11px] font-extrabold flex items-center gap-2 mb-8 uppercase tracking-widest">
-                <MapPin size={14}/> {selectedBin.area}
+              {/* TABS FOR MULTIPLE BINS WITH SAME NAME */}
+              {sameBins.length > 1 && (
+                <div className="flex gap-2 mb-6 pb-4 border-b border-slate-200">
+                  {sameBins.map((bin, idx) => {
+                    const binColor = getColorByType(bin.bin_type);
+                    return (
+                      <button
+                        key={bin._id}
+                        onClick={() => setActiveTabIndex(idx)}
+                        className={`px-3 py-2 rounded-lg text-[10px] font-black uppercase transition-all ${
+                          activeTabIndex === idx
+                            ? `${binColor.bg} text-white shadow-lg`
+                            : `${binColor.light} ${binColor.text} border ${binColor.border} hover:shadow-md`
+                        }`}
+                      >
+                        {bin.bin_type}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+
+              <h3 className="text-3xl font-black text-slate-900 leading-tight mb-2 tracking-tight">{currentBin.name}</h3>
+              <p className="text-slate-600 text-[11px] font-extrabold flex items-center gap-2 mb-2 uppercase tracking-widest">
+                <MapPin size={14}/> {currentBin.area} • {currentBin.location_type}
               </p>
 
               {/* LIQUID SATURATION ANIMATION */}
-              <div className="bg-slate-50 p-8 rounded-[2.5rem] border border-slate-100 mb-8 flex flex-col items-center justify-center shadow-inner">
+              <div className={`${colorScheme.light} p-8 rounded-[2.5rem] border ${colorScheme.border} mb-8 flex flex-col items-center justify-center shadow-inner`}>
                 <div className="w-32 h-44 bg-white rounded-b-3xl border-x-[6px] border-b-[6px] border-slate-800 relative overflow-hidden shadow-2xl">
                   <div 
-                    className={`absolute bottom-0 w-full transition-all duration-[1.5s] ease-in-out ${(selectedBin.currentLevel || 0) > 80 ? 'bg-red-500' : (selectedBin.currentLevel || 0) > 50 ? 'bg-amber-500' : 'bg-emerald-500'}`} 
-                    style={{ height: `${selectedBin.currentLevel || 0}%` }}
+                    className={`absolute bottom-0 w-full transition-all duration-[1.5s] ease-in-out ${colorScheme.bg}`} 
+                    style={{ height: `${currentBin.currentLevel || 0}%` }}
                   >
                     <div className="absolute top-0 left-0 w-full h-3 bg-white/30 animate-pulse"></div>
                   </div>
                 </div>
                 <div className="mt-6 text-center">
-                  <h4 className={`text-5xl font-black ${(selectedBin.currentLevel || 0) > 80 ? 'text-red-600' : 'text-slate-900'}`}>
-                    {selectedBin.currentLevel || 0}%
+                  <h4 className={`text-5xl font-black ${colorScheme.text}`}>
+                    {currentBin.currentLevel || 0}%
                   </h4>
                   <p className="text-slate-400 text-[10px] uppercase font-black tracking-[0.2em] mt-1">Saturation Level</p>
                 </div>
@@ -180,34 +223,41 @@ const DustbinStatus = () => {
               <div className="grid grid-cols-2 gap-4 mb-8">
                 
                 {/* Node Status */}
-                <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm hover:border-blue-200 transition-colors">
-                   <ShieldCheck size={18} className={`${selectedBin.isActive ? 'text-emerald-500' : 'text-red-500'} mb-2`}/>
+                <div className={`bg-white p-4 rounded-2xl border ${colorScheme.border} shadow-sm hover:${colorScheme.border} transition-colors`}>
+                   <ShieldCheck size={18} className={`${currentBin.isActive ? 'text-emerald-500' : 'text-red-500'} mb-2`}/>
                    <p className="text-[9px] text-slate-400 font-black uppercase tracking-tighter">Node Status</p>
-                   <p className={`text-lg font-black ${selectedBin.isActive ? 'text-emerald-600' : 'text-red-600'}`}>
-                     {selectedBin.isActive ? 'Online' : 'Offline'}
+                   <p className={`text-lg font-black ${currentBin.isActive ? 'text-emerald-600' : 'text-red-600'}`}>
+                     {currentBin.isActive ? 'Online' : 'Offline'}
                    </p>
                 </div>
 
+                {/* Bin Type */}
+                <div className={`bg-white p-4 rounded-2xl border ${colorScheme.border} shadow-sm hover:${colorScheme.border} transition-colors`}>
+                   <Box size={18} className={`${colorScheme.text} mb-2`}/>
+                   <p className="text-[9px] text-slate-400 font-black uppercase tracking-tighter">Waste Type</p>
+                   <p className={`text-lg font-black ${colorScheme.text}`}>{currentBin.bin_type}</p>
+                </div>
+
                 {/* Capacity Size */}
-                <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm hover:border-blue-200 transition-colors">
-                   <Box size={18} className="text-blue-500 mb-2"/>
+                <div className={`bg-white p-4 rounded-2xl border ${colorScheme.border} shadow-sm hover:${colorScheme.border} transition-colors`}>
+                   <Box size={18} className="text-indigo-500 mb-2"/>
                    <p className="text-[9px] text-slate-400 font-black uppercase tracking-tighter">Capacity</p>
-                   <p className="text-lg font-black text-slate-800">{selectedBin.size || 'Medium'}</p>
+                   <p className="text-lg font-black text-slate-800">{currentBin.size || 'Medium'}</p>
                 </div>
 
                 {/* AI Priority Score */}
-                <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm hover:border-blue-200 transition-colors">
+                <div className={`bg-white p-4 rounded-2xl border ${colorScheme.border} shadow-sm hover:${colorScheme.border} transition-colors`}>
                    <Activity size={18} className="text-indigo-500 mb-2"/>
                    <p className="text-[9px] text-slate-400 font-black uppercase tracking-tighter">Priority Score</p>
-                   <p className="text-lg font-black text-slate-800">{selectedBin.priority_score || 0}</p>
+                   <p className="text-lg font-black text-slate-800">{currentBin.priority_score || 0}</p>
                 </div>
 
                 {/* Last Seen Timestamp */}
-                <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm hover:border-blue-200 transition-colors">
+                <div className={`bg-white p-4 rounded-2xl border ${colorScheme.border} shadow-sm hover:${colorScheme.border} transition-colors col-span-2`}>
                    <Clock size={18} className="text-slate-400 mb-2"/>
                    <p className="text-[9px] text-slate-400 font-black uppercase tracking-tighter">Last Seen</p>
                    <p className="text-sm font-black text-slate-800 mt-1">
-                     {selectedBin.lastSeenAt ? new Date(selectedBin.lastSeenAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'N/A'}
+                     {currentBin.lastSeenAt ? new Date(currentBin.lastSeenAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'N/A'}
                    </p>
                 </div>
 
@@ -215,7 +265,8 @@ const DustbinStatus = () => {
 
            
             </div>
-          )}
+            );
+          })()}
         </div>
       </div>
     </div>

@@ -12,12 +12,55 @@ const BinAnalytics = () => {
   const [initialLoading, setInitialLoading] = useState(true);
   const analyticsRef = useRef(null);
 
+  // Helper to map bin_type to color scheme (keeps UI consistent with other components)
+  const getColorByType = (binType) => {
+    const typeColorMap = {
+      Organic: { bg: 'bg-green-600', text: 'text-green-600', light: 'bg-green-50', border: 'border-green-200' },
+      Recyclable: { bg: 'bg-blue-700', text: 'text-blue-700', light: 'bg-blue-50', border: 'border-blue-200' },
+      Hazardous: { bg: 'bg-red-600', text: 'text-red-600', light: 'bg-red-50', border: 'border-red-200' },
+    };
+    return typeColorMap[binType] || { bg: 'bg-slate-600', text: 'text-slate-600', light: 'bg-slate-50', border: 'border-slate-200' };
+  };
+
+  // Change bin type on backend and update local state
+  const handleChangeBinType = async (binId, newType) => {
+    try {
+      setLoading(true);
+      const endpoint = ENDPOINTS?.DUSTBIN?.UPDATE_TYPE || '/api/dustbins/update-type';
+      const resp = await apiCall('POST', endpoint, { bin_id: binId, bin_type: newType });
+      if (resp?.success) {
+        // update local list and selected bin
+        setBins(prev => prev.map(b => b._id === binId ? { ...b, bin_type: newType } : b));
+        if (selectedBin && selectedBin._id === binId) setSelectedBin(prev => ({ ...prev, bin_type: newType }));
+      } else {
+        console.error('Failed to update bin type', resp);
+        alert(resp?.message || 'Could not update bin type');
+      }
+    } catch (err) {
+      console.error('Error updating bin type', err);
+      alert('Network error while updating bin type');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     const fetchBins = async () => {
       try {
         setInitialLoading(true);
         const res = await apiCall('GET', ENDPOINTS?.DUSTBIN?.MAP_DUSTBINS || ENDPOINTS?.ADMIN?.GET_CITY_BINS);
-        setBins(Array.isArray(res) ? res : res?.data || []);
+        const fetched = Array.isArray(res) ? res : res?.data || [];
+        // sort by area name (alphabetical). If same area, keep type order as secondary sort
+        const typeOrder = { Organic: 0, Recyclable: 1, Hazardous: 2 };
+        fetched.sort((a, b) => {
+          const areaA = (a.area || '').toString().toLowerCase();
+          const areaB = (b.area || '').toString().toLowerCase();
+          if (areaA === areaB) {
+            return (typeOrder[a.bin_type] ?? 99) - (typeOrder[b.bin_type] ?? 99);
+          }
+          return areaA.localeCompare(areaB);
+        });
+        setBins(fetched);
       } catch (err) {
         console.error("Failed to fetch bins:", err);
       } finally {
@@ -52,21 +95,52 @@ const BinAnalytics = () => {
       {/* BIN SELECTION GRID */}
       <div className="space-y-4 px-2">
         <h3 className="text-xs font-black text-slate-800 uppercase tracking-widest">Select Dustbin</h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          {bins.map(bin => (
-            <button 
-              key={bin._id}
-              onClick={() => handleSelectBin(bin)}
-              className={`p-4 rounded-3xl border transition-all text-left shadow-sm ${
-                selectedBin?._id === bin._id ? 'bg-blue-600 border-blue-600' : 'bg-white border-slate-100'
-              }`}
-            >
-              <p className={`font-black text-xs truncate ${selectedBin?._id === bin._id ? 'text-white' : 'text-slate-800'}`}>{bin.name}</p>
-              <p className={`text-[8px] font-bold uppercase ${selectedBin?._id === bin._id ? 'text-blue-100' : 'text-slate-400'}`}>{bin.area}</p>
-              <p className={`mt-2 font-black ${selectedBin?._id === bin._id ? 'text-white' : 'text-blue-600'}`}>{bin.currentLevel}%</p>
-            </button>
-          ))}
-        </div>
+        {/* Group bins by area and display each area as a separate row */}
+        {(() => {
+          const grouped = bins.reduce((acc, b) => {
+            const area = (b.area || 'Unknown').toString();
+            if (!acc[area]) acc[area] = [];
+            acc[area].push(b);
+            return acc;
+          }, {});
+
+          const areaKeys = Object.keys(grouped).sort((a, b) => a.localeCompare(b));
+
+          return areaKeys.map(area => {
+            const areaBins = (grouped[area] || []).sort((x, y) => (x.name || '').localeCompare(y.name || ''));
+            return (
+              <div key={area} className="mb-4">
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="text-sm font-black uppercase text-slate-700">{area}</h4>
+                  <p className="text-xs text-slate-400">{areaBins.length} bins</p>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  {areaBins.map(bin => {
+                    const scheme = getColorByType(bin.bin_type);
+                    return (
+                      <button
+                        key={bin._id}
+                        onClick={() => handleSelectBin(bin)}
+                        className={`p-4 rounded-3xl border transition-all text-left shadow-sm flex flex-col items-start gap-2 ${
+                          selectedBin?._id === bin._id ? 'bg-blue-600 border-blue-600' : 'bg-white border-slate-100'
+                        }`}
+                      >
+                        <div className="flex items-center w-full justify-between">
+                          <div className="flex items-center gap-3">
+                            <span className={`w-3 h-3 rounded-full ${scheme.bg}`}></span>
+                            <p className={`font-black text-xs truncate ${selectedBin?._id === bin._id ? 'text-white' : 'text-slate-800'}`}>{bin.name}</p>
+                          </div>
+                          <p className={`mt-0 font-black text-sm ${selectedBin?._id === bin._id ? 'text-white' : 'text-blue-600'}`}>{bin.currentLevel}%</p>
+                        </div>
+                        <p className={`text-[8px] font-bold uppercase ${selectedBin?._id === bin._id ? 'text-blue-100' : 'text-slate-400'}`}>{bin.location_type || 'General'}</p>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          });
+        })()}
       </div>
 
       {/* CHART SECTION */}
@@ -78,9 +152,13 @@ const BinAnalytics = () => {
                 <h2 className="text-lg font-black text-slate-800 uppercase">{selectedBin.name} Analysis</h2>
                 <p className="text-[10px] font-bold text-slate-400">{selectedBin.area}</p>
               </div>
-              <div className="bg-blue-50 px-3 py-1.5 rounded-xl text-center">
-                <p className="text-[8px] font-black text-blue-500 uppercase">Avg Fill Speed</p>
-                <p className="text-sm font-black text-slate-800">{analytics?.stats?.avgFillingRate || 'N/A'}</p>
+              <div className="flex items-center gap-3">
+                <div className="bg-blue-50 px-3 py-1.5 rounded-xl text-center">
+                  <p className="text-[8px] font-black text-blue-500 uppercase">Avg Fill Speed</p>
+                  <p className="text-sm font-black text-slate-800">{analytics?.stats?.avgFillingRate || 'N/A'}</p>
+                </div>
+
+                
               </div>
             </div>
 

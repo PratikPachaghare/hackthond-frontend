@@ -13,7 +13,7 @@ useEffect(() => {
         setLoading(true);
         // 1. Fetch data from backend
         const response = await apiCall('GET', ENDPOINTS?.WORKER?.GET_OPTIMIZED_TASKS || ENDPOINTS?.ADMIN?.GET_CITY_BINS);
-        
+        console.log("Optimized tasks fetched:", response);
         // 2. Extract the 'tasks' array sent by your Node.js backend
         // (Assuming apiCall returns the raw JSON body. If it returns an Axios object, use response.data.tasks)
         const optimizedBins = response?.tasks || response?.data?.tasks || [];

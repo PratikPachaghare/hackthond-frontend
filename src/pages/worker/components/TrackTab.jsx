@@ -34,6 +34,8 @@ const TrackTab = ({ activeRoute, setActiveRoute, onRouteFinished }) => {
   // 🔥 NEW STATES FOR DIRECTIONS & ETA
   const [routeStats, setRouteStats] = useState({ distance: 0, duration: 0 });
   const [nextTurn, setNextTurn] = useState("Heading to first bin...");
+  // Popup selection state for markers that have multiple bins with the same name
+  const [popupSelected, setPopupSelected] = useState({});
 
   const amravatiCenter = [20.9320, 77.7523];
 
@@ -57,6 +59,7 @@ const TrackTab = ({ activeRoute, setActiveRoute, onRouteFinished }) => {
       try {
         setLoading(true);
         const response = await apiCall('GET', ENDPOINTS?.DUSTBIN?.MAP_DUSTBINS || ENDPOINTS?.ADMIN?.GET_CITY_BINS);
+        console.log("Map bins fetched:", response);
         setAllBins(Array.isArray(response) ? response : response?.data || []);
       } catch (error) {
         console.error("Map Fetch Error:", error);
@@ -170,6 +173,16 @@ const handleMarkCollected = async (binId) => {
     iconSize: [16, 16]
   });
 
+  // Helper to map bin_type to color scheme
+  const getColorByType = (binType) => {
+    const typeColorMap = {
+      Organic: { bg: 'bg-green-600', text: 'text-green-600', light: 'bg-green-50', border: 'border-green-200' },
+      Recyclable: { bg: 'bg-blue-700', text: 'text-blue-700', light: 'bg-blue-50', border: 'border-blue-200' },
+      Hazardous: { bg: 'bg-red-600', text: 'text-red-600', light: 'bg-red-50', border: 'border-red-200' },
+    };
+    return typeColorMap[binType] || { bg: 'bg-slate-600', text: 'text-slate-600', light: 'bg-slate-50', border: 'border-slate-200' };
+  };
+
   if (loading && !activeRoute) return <div className="flex h-full items-center justify-center"><Loader2 className="animate-spin text-blue-500" size={32}/></div>;
 
   const displayBins = activeRoute || allBins;
@@ -215,13 +228,47 @@ const handleMarkCollected = async (binId) => {
               iconSize: [30, 30]
             });
 
+            // Find all bins that share the same name (trimmed) to show tabs in popup
+            const sameBins = allBins.filter(b => b.name && bin.name && b.name.trim() === bin.name.trim());
+            const selectedIndex = popupSelected[bin._id] || 0;
+            const selectedBin = sameBins[selectedIndex] || bin;
+
             return (
               <Marker key={bin._id} position={[lat, lng]} icon={customIcon}>
                 <Popup className="rounded-2xl">
-                  <div className="p-1 text-center font-sans">
-                    <h4 className="font-bold text-slate-800 mb-2">{bin.name || "Dustbin"}</h4>
+                  <div className="p-2 font-sans max-w-xs">
+                    <h4 className="font-bold text-slate-800 mb-2">{bin.name || 'Dustbin'}</h4>
+
+                    {sameBins.length > 1 && (
+                      <div className="flex gap-2 mb-3 flex-wrap">
+                        {sameBins.map((sbin, idx) => {
+                          const scheme = getColorByType(sbin.bin_type);
+                          const isActiveTab = idx === selectedIndex;
+                          return (
+                            <button
+                              key={sbin._id}
+                              onClick={() => setPopupSelected(prev => ({ ...prev, [bin._id]: idx }))}
+                              className={`px-3 py-1 rounded-md text-xs font-bold uppercase ${isActiveTab ? `${scheme.bg} text-white` : `${scheme.light} ${scheme.text} border ${scheme.border}`}`}
+                            >
+                              {sbin.bin_type} • {sbin.currentLevel || 0}%
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+
+                    {/* Selected bin details */}
+                    <div className="mb-3">
+                      <div className="w-full bg-slate-100 rounded-full h-3 overflow-hidden">
+                        <div className={`${getColorByType(selectedBin.bin_type).bg} h-3`} style={{ width: `${selectedBin.currentLevel || 0}%` }}></div>
+                      </div>
+                      <p className="text-xs text-slate-500 mt-2">Type: <span className="font-bold">{selectedBin.bin_type || 'N/A'}</span></p>
+                      <p className="text-xs text-slate-500">Capacity: <span className="font-bold">{selectedBin.size || 'Medium'}</span></p>
+                      <p className="text-xs text-slate-500">Last Seen: <span className="font-bold">{selectedBin.lastSeenAt ? new Date(selectedBin.lastSeenAt).toLocaleString() : 'N/A'}</span></p>
+                    </div>
+
                     {activeRoute && (
-                      <button onClick={() => handleMarkCollected(bin._id)} className="bg-emerald-500 text-white px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider w-full flex items-center justify-center gap-1 active:scale-95 transition-all">
+                      <button onClick={() => handleMarkCollected(selectedBin._id)} className="bg-emerald-500 text-white px-3 py-2 rounded-lg text-xs font-bold uppercase tracking-wider w-full flex items-center justify-center gap-2 active:scale-95 transition-all">
                         <CheckCircle2 size={14}/> Mark Collected
                       </button>
                     )}

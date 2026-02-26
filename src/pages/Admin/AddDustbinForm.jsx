@@ -20,6 +20,7 @@ const AddDustbinForm = () => {
     location_type: 'Residential',
     size: 'Medium',
     sizeCM: 30,
+    bin_type: 'Organic', // new field for dustbin type
     lat: '',
     lng: ''
   });
@@ -86,7 +87,8 @@ const AddDustbinForm = () => {
           ...formData,
           sizeCM: Number(formData.sizeCM),
           lat: parseFloat(formData.lat),
-          lng: parseFloat(formData.lng)
+          lng: parseFloat(formData.lng),
+          bin_type: formData.bin_type // send new field
         }
       );
 
@@ -206,6 +208,15 @@ const AddDustbinForm = () => {
               <label className={labelClass}>Depth (CM)</label>
               <input type="number" name="sizeCM" value={formData.sizeCM} onChange={handleChange} required className={inputClass} placeholder="e.g. 30" />
             </div>
+          </div>
+
+          <div>
+            <label className={labelClass}>Dustbin Type</label>
+            <select name="bin_type" value={formData.bin_type} onChange={handleChange} className={inputClass}>
+              <option value="Organic">Organic</option>
+              <option value="Recyclable">Recyclable</option>
+              <option value="Hazardous">Hazardous</option>
+            </select>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
