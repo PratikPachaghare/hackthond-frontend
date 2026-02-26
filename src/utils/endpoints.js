@@ -1,4 +1,4 @@
-const API_BASE_URL = "http://localhost:8000/api"; // Production mein domain change karein
+export const API_BASE_URL = "http://localhost:8000/api"; // Production mein domain change karein
 
 export const ENDPOINTS = {
   // 1. User & Authentication

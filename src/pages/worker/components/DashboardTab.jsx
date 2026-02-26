@@ -9,38 +9,32 @@ const DashboardTab = () => {
   const [pendingCount, setPendingCount] = useState(0); // Old local logic count
   const [loading, setLoading] = useState(true);
   const [typeCounts, setTypeCounts] = useState({ Organic: 0, Recyclable: 0, Hazardous: 0 });
+  // totals derived from backend areaBreakdown (may exist inside data.binData)
+  const [breakdownTotals, setBreakdownTotals] = useState({ Organic: null, Recyclable: null, Hazardous: null });
 
   useEffect(() => {
     const fetchDashboardStats = async () => {
       try {
         setLoading(true);
-        // Using existing endpoint logic as per your old code
         const response = await apiCall('GET', ENDPOINTS?.WORKER?.GET_CITY_BINS || '/api/worker/dashboard-stats');
-        console.log("dashboard responce :", response);
-
+        console.log("dashboard stats response:", response);
         if (response?.success) {
           setData(response);
-          
-          // --- OLD CODE LOGIC PRESERVED ---
-          // Local filter logic from your previous snippet
-          // Assuming 'response.bins' exists or using 'response' if it's an array
-          const binsArray = Array.isArray(response) ? response : response?.data || response?.bins || [];
-          const pending = binsArray.filter(bin => (bin.currentLevel || 0) > 80 || bin.isPredictedFull).length;
-          setPendingCount(pending);
-          // compute counts per bin_type
-          const counts = (binsArray || []).reduce((acc, b) => {
-            const t = (b.bin_type || b.type || '').toString().trim();
-            if (!t) return acc;
-            if (!acc[t]) acc[t] = 0;
-            acc[t]++;
+        } else {
+          // fallback in case API returns plain object/array
+          setData(response);
+        }
+
+        // if dashboard returned area breakdown totals, compute them
+        const breakdown = response?.binData?.stats?.areaBreakdown || response?.stats?.areaBreakdown || [];
+        if (Array.isArray(breakdown) && breakdown.length > 0) {
+          const totals = breakdown.reduce((acc, item) => {
+            acc.Organic += item.organicCount || 0;
+            acc.Recyclable += item.recycleCount || item.recycleableCount || 0;
+            acc.Hazardous += item.hazardousCount || 0;
             return acc;
-          }, {});
-          setTypeCounts({
-            Organic: counts.Organic || 0,
-            Recyclable: counts.Recyclable || 0,
-            Hazardous: counts.Hazardous || 0,
-          });
-          // --------------------------------
+          }, { Organic: 0, Recyclable: 0, Hazardous: 0 });
+          setBreakdownTotals(totals);
         }
       } catch (error) {
         console.error("Dashboard Fetch Error:", error);
@@ -49,6 +43,33 @@ const DashboardTab = () => {
       }
     };
     fetchDashboardStats();
+  }, []);
+
+  // separate call to retrieve actual bin list for calculating breakdowns
+  useEffect(() => {
+    const fetchBinsForCounts = async () => {
+      try {
+        const res = await apiCall('GET', ENDPOINTS?.DUSTBIN?.MAP_DUSTBINS || ENDPOINTS?.ADMIN?.GET_CITY_BINS);
+        const binsArray = Array.isArray(res) ? res : res?.data || res?.bins || [];
+        const pending = binsArray.filter(bin => (bin.currentLevel || 0) > 80 || bin.isPredictedFull).length;
+        setPendingCount(pending);
+        const counts = binsArray.reduce((acc, b) => {
+          const t = (b.bin_type || b.type || '').toString().trim();
+          if (!t) return acc;
+          if (!acc[t]) acc[t] = 0;
+          acc[t]++;
+          return acc;
+        }, {});
+        setTypeCounts({
+          Organic: counts.Organic || 0,
+          Recyclable: counts.Recyclable || 0,
+          Hazardous: counts.Hazardous || 0,
+        });
+      } catch (err) {
+        console.error("Error fetching bins for counts:", err);
+      }
+    };
+    fetchBinsForCounts();
   }, []);
 
   if (loading) return (
@@ -133,19 +154,19 @@ const DashboardTab = () => {
         <div className="grid grid-cols-3 gap-4 mt-4">
           <div className="p-4 rounded-2xl bg-green-50 border border-green-100 flex flex-col items-start">
             <span className="text-xs font-black uppercase text-green-700">Organic</span>
-            <h4 className="text-2xl font-extrabold text-green-800 mt-2">{typeCounts.Organic}</h4>
+            <h4 className="text-2xl font-extrabold text-green-800 mt-2">{breakdownTotals.Organic !== null ? breakdownTotals.Organic : typeCounts.Organic}</h4>
             <p className="text-[10px] text-green-600 mt-1">bins</p>
           </div>
 
           <div className="p-4 rounded-2xl bg-blue-50 border border-blue-100 flex flex-col items-start">
             <span className="text-xs font-black uppercase text-blue-700">Recyclable</span>
-            <h4 className="text-2xl font-extrabold text-blue-800 mt-2">{typeCounts.Recyclable}</h4>
+            <h4 className="text-2xl font-extrabold text-blue-800 mt-2">{breakdownTotals.Recyclable !== null ? breakdownTotals.Recyclable : typeCounts.Recyclable}</h4>
             <p className="text-[10px] text-blue-600 mt-1">bins</p>
           </div>
 
           <div className="p-4 rounded-2xl bg-red-50 border border-red-100 flex flex-col items-start">
             <span className="text-xs font-black uppercase text-red-700">Hazardous</span>
-            <h4 className="text-2xl font-extrabold text-red-800 mt-2">{typeCounts.Hazardous}</h4>
+            <h4 className="text-2xl font-extrabold text-red-800 mt-2">{breakdownTotals.Hazardous !== null ? breakdownTotals.Hazardous : typeCounts.Hazardous}</h4>
             <p className="text-[10px] text-red-600 mt-1">bins</p>
           </div>
         </div>

@@ -49,6 +49,7 @@ const BinAnalytics = () => {
       try {
         setInitialLoading(true);
         const res = await apiCall('GET', ENDPOINTS?.DUSTBIN?.MAP_DUSTBINS || ENDPOINTS?.ADMIN?.GET_CITY_BINS);
+        console.log("Bins fetched for analytics:", res);
         const fetched = Array.isArray(res) ? res : res?.data || [];
         // sort by area name (alphabetical). If same area, keep type order as secondary sort
         const typeOrder = { Organic: 0, Recyclable: 1, Hazardous: 2 };

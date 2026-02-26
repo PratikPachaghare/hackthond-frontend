@@ -61,6 +61,7 @@ const Dashboard = () => {
           apiCall('GET', ENDPOINTS.ADMIN.GET_CITY_BINS),
           apiCall('GET', ENDPOINTS.ADMIN.DASHBOARD_STATS)
         ]);
+        console.log("Dashboard Initial Data:", { binData, statsResponse });
 
         if (binData?.data) {
           setDustbins(binData.data);
@@ -313,11 +314,11 @@ const Dashboard = () => {
             {filteredAreas.length > 0 ? (
               filteredAreas.map((area, idx) => (
                 (() => {
-                  const sameCount = Number(area.count) || 0;
+                  // const sameCount = Number(.count) || 0;
                   const distribution = {
-                    organic: sameCount,
-                    recycle: sameCount,
-                    hazardous: sameCount,
+                    organic: area.organicCount || 0,
+                    recycle: area.recyclableCount || 0,
+                    hazardous: area.hazardousCount || 0,
                   };
                   return (
                 <div 

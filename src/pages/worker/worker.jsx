@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { Home, Calendar, Map as MapIcon, User } from 'lucide-react';
+import { Home, Calendar, Map as MapIcon, ShieldCheck, User } from 'lucide-react';
 
 // Import Components
 import DashboardTab from './components/DashboardTab';
 import ScheduleTab from './components/ScheduleTab';
 import TrackTab from './components/TrackTab';
-import ProfileTab from './components/ProfileTab'; // Assuming you kept this as-is from the previous step
+import VerifyTrashTab from './components/VerifyTrashTab'; // NEW COMPONENT
+import ProfileTab from './components/ProfileTab'; 
 
 export default function WorkerApp() {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -28,6 +29,7 @@ export default function WorkerApp() {
       case 'dashboard': return <DashboardTab />;
       case 'schedule': return <ScheduleTab onStartRoute={handleStartRoute} />;
       case 'track': return <TrackTab activeRoute={activeRoute} setActiveRoute={setActiveRoute} onRouteFinished={handleRouteFinished} />;
+      case 'verify': return <VerifyTrashTab />; // NEW TAB ROUTE
       case 'profile': return <ProfileTab />;
       default: return <DashboardTab />;
     }
@@ -46,6 +48,8 @@ export default function WorkerApp() {
         <NavButton icon={Home} label="Dash" tab="dashboard" activeTab={activeTab} onClick={setActiveTab} />
         <NavButton icon={Calendar} label="Schedule" tab="schedule" activeTab={activeTab} onClick={setActiveTab} />
         <NavButton icon={MapIcon} label="Track" tab="track" activeTab={activeTab} onClick={setActiveTab} />
+        {/* NEW VERIFY BUTTON PLACED BEFORE PROFILE */}
+        <NavButton icon={ShieldCheck} label="Verify" tab="verify" activeTab={activeTab} onClick={setActiveTab} />
         <NavButton icon={User} label="Profile" tab="profile" activeTab={activeTab} onClick={setActiveTab} />
       </div>
       

@@ -96,7 +96,6 @@ const TrackTab = ({ activeRoute, setActiveRoute, onRouteFinished }) => {
 
         if (validDestinations === 0) return;
 
-        // 🔥 Added &steps=true to get turn-by-turn directions
         const url = `https://router.project-osrm.org/route/v1/driving/${coordinatesString}?overview=full&geometries=geojson&steps=true`;
         
         const response = await fetch(url);
@@ -183,6 +182,32 @@ const handleMarkCollected = async (binId) => {
     return typeColorMap[binType] || { bg: 'bg-slate-600', text: 'text-slate-600', light: 'bg-slate-50', border: 'border-slate-200' };
   };
 
+  // Generate Google Maps directions URL with all bins as waypoints
+  const makeGoogleMapsUrl = (bins) => {
+    if (!bins || bins.length === 0) return '';
+    const [olat, olng] = userLoc;
+    const origin = `${olat},${olng}`;
+
+    const coords = bins.map(b => {
+      const lat = b.location?.lat || b.lat || b.latitude;
+      const lng = b.location?.lng || b.lng || b.longitude;
+      return lat && lng ? `${lat},${lng}` : null;
+    }).filter(Boolean);
+
+    if (coords.length === 0) return '';
+
+    const destination = coords.pop();         // last one
+    const waypoints = coords.join('|');       // remaining
+
+    const url = new URL('https://www.google.com/maps/dir/');
+    url.searchParams.set('api', '1');
+    url.searchParams.set('origin', origin);
+    url.searchParams.set('destination', destination);
+    if (waypoints) url.searchParams.set('waypoints', waypoints);
+    url.searchParams.set('travelmode', 'driving');
+    return url.toString();
+  };
+
   if (loading && !activeRoute) return <div className="flex h-full items-center justify-center"><Loader2 className="animate-spin text-blue-500" size={32}/></div>;
 
   const displayBins = activeRoute || allBins;
@@ -191,10 +216,22 @@ const handleMarkCollected = async (binId) => {
     <div className="h-full relative flex flex-col">
       {/* HEADER: Shows General or Active Mode */}
       <div className="absolute top-4 left-4 right-4 z-[400] bg-white/90 backdrop-blur-md p-3 rounded-2xl border border-white/50 shadow-lg">
-        <h3 className="font-black text-slate-800 text-sm flex items-center gap-2">
-          {activeRoute ? <><Navigation size={16} className="text-blue-600"/> Active Route Mode</> : <><MapIcon size={16} className="text-slate-400"/> General Map</>}
-        </h3>
-        {activeRoute && <p className="text-xs text-slate-500 font-medium mt-1">Navigating to {activeRoute.length} pending bins</p>}
+        <div className="flex items-center justify-between">
+          <div className="flex-1">
+            <h3 className="font-black text-slate-800 text-sm flex items-center gap-2">
+              {activeRoute ? <><Navigation size={16} className="text-blue-600"/> Active Route Mode</> : <><MapIcon size={16} className="text-slate-400"/> General Map</>}
+            </h3>
+            {activeRoute && <p className="text-xs text-slate-500 font-medium mt-1">Navigating to {activeRoute.length} pending bins</p>}
+          </div>
+          {activeRoute && (
+            <button
+              onClick={() => window.open(makeGoogleMapsUrl(activeRoute), '_blank')}
+              className="ml-3 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold uppercase transition-all active:scale-95"
+            >
+              📍 Google Maps
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="flex-1 z-0">
@@ -206,9 +243,10 @@ const handleMarkCollected = async (binId) => {
 
           <Marker position={userLoc} icon={userIcon} />
 
-          {activeRoute && roadPath.length > 0 ? (
+          {activeRoute && roadPath.length > 0 && (
             <Polyline key="real-road" positions={roadPath} color="#2563eb" weight={6} opacity={0.8} />
-          ) : activeRoute && (
+          )}
+          {activeRoute && roadPath.length === 0 && (
              <Polyline 
                key="dashed-fallback" 
                positions={[userLoc, ...activeRoute.map(b => [b.location?.lat || b.lat || b.latitude, b.location?.lng || b.lng || b.longitude])]} 

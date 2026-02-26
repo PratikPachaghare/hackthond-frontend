@@ -18,6 +18,9 @@ export default function UsersApp({ initialTab = 'capture' }) {
   const [selectedImage, setSelectedImage] = useState(null);
   const [previewUrl, setPreviewUrl] = useState('');
   const [verification, setVerification] = useState(null);
+  
+  // New state to track individual reports for the Stats tab
+  const [reports, setReports] = useState([]);
 
   const handleTabChange = (tab) => {
     setActiveTab(tab);
@@ -42,7 +45,9 @@ export default function UsersApp({ initialTab = 'capture' }) {
       setPreviewUrl,
       verification,
       setVerification,
-      onUploadComplete: () => handleTabChange('verify'),
+      reports,
+      setReports,
+      onUploadComplete: () => handleTabChange('stats'), // Redirect to stats to see pending status
     }),
     [
       creditPoints,
@@ -53,6 +58,7 @@ export default function UsersApp({ initialTab = 'capture' }) {
       selectedImage,
       previewUrl,
       verification,
+      reports,
       handleTabChange,
     ]
   );

@@ -41,8 +41,16 @@ const ProfileTab = () => {
     <div className="p-4 flex flex-col items-center animate-in fade-in zoom-in-95 duration-300">
       {/* 👤 Profile Image & Name Section */}
       <div className="mt-8 flex flex-col items-center">
-        <div className="w-24 h-24 bg-blue-100 rounded-full mb-4 flex items-center justify-center shadow-inner border-4 border-white">
-          <User size={40} className="text-blue-600" />
+        <div className="w-24 h-24 bg-blue-100 rounded-full mb-4 flex items-center justify-center shadow-inner border-4 border-white overflow-hidden">
+          {worker?.profileImage || worker?.image || worker?.photo ? (
+            <img
+              src={worker.profileImage || worker.image || worker.photo}
+              alt="Profile"
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <User size={40} className="text-blue-600" />
+          )}
         </div>
         <h2 className="text-2xl font-black text-slate-800 tracking-tight text-center">
           {worker?.name || "Worker Name"} 
@@ -59,30 +67,9 @@ const ProfileTab = () => {
         </p>
       </div>
 
-      {/* 📊 Quick Stats (Rank & Tasks) - Updated with backend mapping */}
-      <div className="grid grid-cols-2 gap-4 w-full mt-8">
-        <div className="bg-slate-50 p-4 rounded-3xl text-center border border-slate-100">
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Your Rank</p>
-          <p className="text-xl font-black text-blue-600">{worker?.rank || "#1"}</p>
-        </div>
-        <div className="bg-slate-50 p-4 rounded-3xl text-center border border-slate-100">
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Completed</p>
-          <p className="text-xl font-black text-slate-800">{worker?.tasksCompleted || 0}</p>
-        </div>
-      </div>
-
-      {/* ⚙️ Settings / Actions */}
+   
+      {/* ⚙️ Actions */}
       <div className="mt-6 w-full bg-white p-2 rounded-[2rem] border border-slate-100 shadow-sm flex flex-col">
-          <button className="flex items-center gap-3 text-left text-sm font-bold text-slate-700 p-4 hover:bg-slate-50 rounded-2xl transition-colors border-b border-slate-50">
-            <History size={18} className="text-slate-400" />
-            Duty History
-          </button>
-          
-          <button className="flex items-center gap-3 text-left text-sm font-bold text-slate-700 p-4 hover:bg-slate-50 rounded-2xl transition-colors border-b border-slate-50">
-            <Truck size={18} className="text-slate-400" />
-            Vehicle Settings
-          </button>
-          
           <button 
             onClick={handleLogout}
             className="flex items-center gap-3 text-left text-sm font-bold text-red-500 p-4 hover:bg-red-50 rounded-2xl transition-colors"
