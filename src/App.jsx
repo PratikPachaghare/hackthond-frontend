@@ -4,6 +4,7 @@ import Dashboard from './pages/Admin/Dashboard';
 import DustbinStatus from './pages/Admin/DustbinStatus';
 import Prediction from './pages/Admin/WorkforceManager';
 import WorkerView from './pages/worker/worker';
+import UsersView from './pages/Users/users';
 import Sidebar from './Layout/Sidebar';
 import Auth from './pages/Auth/Auth';
 import HotspotAnalysis from './pages/Admin/HotspotAnalysis';
@@ -32,9 +33,12 @@ useEffect(() => {
   }, []);
 
   const ProtectedRoute = ({ children, allowedRole }) => {
+    const currentRole = user?.role?.toLowerCase?.();
+    const normalizedRole = currentRole === 'users' ? 'user' : currentRole;
+    const normalizedAllowedRole = allowedRole?.toLowerCase?.();
     if (initialLoading) return null; // Wait for localStorage check
     if (!user) return <Navigate to="/auth" />;
-    if (allowedRole && user.role !== allowedRole) return <Navigate to="/auth" />;
+    if (normalizedAllowedRole && normalizedRole !== normalizedAllowedRole) return <Navigate to="/auth" />;
     return children;
   };
 
@@ -71,14 +75,34 @@ useEffect(() => {
             </ProtectedRoute>
           } 
         />
+
+        <Route path="/user" element={<UsersView initialTab="capture" />} />
+        <Route path="/user/capture" element={<UsersView initialTab="capture" />} />
+        <Route path="/user/verify" element={<UsersView initialTab="verify" />} />
+        <Route path="/user/info" element={<UsersView initialTab="info" />} />
+        <Route path="/user/stats" element={<UsersView initialTab="stats" />} />
+        <Route path="/users" element={<Navigate to="/user" replace />} />
+        <Route path="/Users" element={<Navigate to="/user" replace />} />
+        <Route path="/users/capture" element={<Navigate to="/user/capture" replace />} />
+        <Route path="/Users/capture" element={<Navigate to="/user/capture" replace />} />
+        <Route path="/users/verify" element={<Navigate to="/user/verify" replace />} />
+        <Route path="/Users/verify" element={<Navigate to="/user/verify" replace />} />
+        <Route path="/users/info" element={<Navigate to="/user/info" replace />} />
+        <Route path="/Users/info" element={<Navigate to="/user/info" replace />} />
+        <Route path="/users/stats" element={<Navigate to="/user/stats" replace />} />
+        <Route path="/Users/stats" element={<Navigate to="/user/stats" replace />} />
         
         <Route 
           path="/" 
           element={
             user ? (
-              user?.role === 'admin' ? <Navigate to="/admin" /> : <Navigate to="/worker" />
+              user?.role?.toLowerCase?.() === 'admin'
+                ? <Navigate to="/admin" />
+                : user?.role?.toLowerCase?.() === 'worker'
+                  ? <Navigate to="/worker" />
+                  : <Navigate to="/user" />
             ) : (
-              <Navigate to="/auth" />
+              <Navigate to="/user" />
             )
           } 
         />

@@ -20,7 +20,7 @@ const Auth = ({ setUser }) => {
   };
 
   const [formData, setFormData] = useState({
-    name: '', email: '', password: '', role: 'worker', 
+    name: '', email: '', password: '', role: 'worker',
     phone: '', city: '', area: '', adminSecret: ''
   });
 
@@ -55,7 +55,11 @@ const Auth = ({ setUser }) => {
         alert(isLogin ? "Welcome Back!" : "Account Created!");
         
         // Navigation logic using flat response
-        const targetPath = response.role === 'admin' ? '/admin' : '/worker';
+        const normalizedRole = response.role?.toLowerCase?.() === 'users' ? 'user' : response.role?.toLowerCase?.();
+        const targetPath =
+          normalizedRole === 'admin' ? '/admin' :
+          normalizedRole === 'worker' ? '/worker' :
+          '/user';
         navigate(targetPath);
       }
     } catch (err) {
