@@ -1,5 +1,6 @@
 import { LayoutDashboard, Map, BarChart3, LogOut, Users, Trash2, Leaf } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import image from '../assets/soch.jpg';
 
 const Sidebar = ({ activeTab, setActiveTab }) => {
   const menuItems = [
@@ -13,9 +14,10 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
 
   return (
     <aside className="w-64 bg-slate-900 text-white h-screen fixed left-0 top-0 flex flex-col p-6">
-      <div className="mb-10 text-center">
-        <h1 className="text-xl font-bold text-green-400 tracking-wider underline">SMART DUSTBIN</h1>
-        <p className="text-xs text-gray-400 mt-1 uppercase">HOD Control Panel</p>
+      <div className="mb-5 text-center">
+    
+        <img src={image} alt="SmartBin Logo" className="mx-auto w-full h-18  rounded-2xl" />
+            <p className="text-xs text-gray-400 mt-1 uppercase">HOD Control Panel</p>
       </div>
 
       <nav className="flex-1">

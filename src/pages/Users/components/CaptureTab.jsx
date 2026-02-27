@@ -86,6 +86,7 @@ const handleUpload = async () => {
         formData.append('image', capturedBlob, `garbage_${Date.now()}.jpg`);
         formData.append('latitude', latitude);
         formData.append('longitude', longitude);
+        formData.append('userId', localStorage.getItem('publicUserId') || 'anonymous'); // Optional: associate with user if logged in
 
         try {
           // 3. REAL Backend Call

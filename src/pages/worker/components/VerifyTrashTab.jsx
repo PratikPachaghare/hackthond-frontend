@@ -85,14 +85,19 @@ export default function VerifyTrashTab() {
               ? `https://www.openstreetmap.org/export/embed.html?bbox=${lng-0.003},${lat-0.003},${lng+0.003},${lat+0.003}&layer=mapnik&marker=${lat},${lng}`
               : null;
 
-            // Safely construct the image URL to prevent double slashes
+            // 👇 UPDATED IMAGE URL LOGIC 👇
+            // If the URL already starts with http (Cloudinary), use it. 
+            // Otherwise, append the backend URL (for old local test images).
+            const isAbsoluteUrl = report.imageUrl && report.imageUrl.startsWith('http');
             const safeBaseUrl = API_BASE_URL.replace(/\/$/, '');
-            const finalImageUrl = `${safeBaseUrl}${report.imageUrl}`;
+            const finalImageUrl = isAbsoluteUrl 
+              ? report.imageUrl 
+              : `${safeBaseUrl}${report.imageUrl}`;
 
             return (
               <div key={report._id} className="bg-white rounded-3xl overflow-hidden border border-slate-200 shadow-sm flex flex-col">
                 
-                {/* Image Section - INCREASED HEIGHT TO h-64 */}
+                {/* Image Section */}
                 <div className="h-64 bg-slate-100 relative">
                   <img 
                     src={finalImageUrl} 
@@ -108,7 +113,7 @@ export default function VerifyTrashTab() {
                   )}
                 </div>
 
-                {/* Map Section - INCREASED HEIGHT TO h-48 & REMOVED pointer-events-none */}
+                {/* Map Section */}
                 {mapEmbedUrl ? (
                   <div className="h-48 bg-slate-200 relative border-y border-slate-200">
                     <iframe 
@@ -117,7 +122,6 @@ export default function VerifyTrashTab() {
                       height="100%" 
                       frameBorder="0" 
                       src={mapEmbedUrl}
-                      // Map is now fully interactive!
                     ></iframe>
                   </div>
                 ) : (
@@ -141,7 +145,7 @@ export default function VerifyTrashTab() {
                     
                     {lat && lng && (
                       <a 
-                        href={`https://maps.google.com/?q=${lat},${lng}`} 
+                        href={`https://www.google.com/maps?q=${lat},${lng}`}  // 👇 FIXED GOOGLE MAPS LINK 👇
                         target="_blank" 
                         rel="noreferrer"
                         className="text-[10px] font-bold text-blue-600 bg-blue-50 px-2.5 py-1.5 rounded-lg flex items-center gap-1 hover:bg-blue-100 transition-colors"
